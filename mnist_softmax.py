@@ -36,9 +36,15 @@ with tf.Session() as sess:
     # 运行初始话
     init_op.run()
     # 训练 1000 次
-    for _ in range(1000):
+    for i in range(1, 1001):
         # 每次取 100 个进行训练
         batch_xs, batch_ys = mnist.train.next_batch(100)
+
+        # 每两百次输出一次准确率
+        if i % 200 == 0:
+            train_accuracy = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys})
+            print("step %d, training accuracy %g" % (i, train_accuracy))
+
         sess.run(train_op, feed_dict={x: batch_xs, y: batch_ys})
 
     # 测试模型在测试集上的准确率
