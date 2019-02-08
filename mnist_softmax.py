@@ -42,7 +42,7 @@ with tf.Session() as sess:
 
         # 每两百次输出一次准确率
         if i % 200 == 0:
-            train_accuracy = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys})
+            train_accuracy = sess.run(accuracy, feed_dict={x: mnist.validation.images, y: mnist.validation.labels})
             print("step %d, training accuracy %g" % (i, train_accuracy))
 
         sess.run(train_op, feed_dict={x: batch_xs, y: batch_ys})
