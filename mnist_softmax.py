@@ -4,6 +4,11 @@ from tensorflow.examples.tutorials.mnist import input_data
 # 数据加载，如果 data_set/mnist 目录下没有对应的数据，将自动下载
 mnist = input_data.read_data_sets("data_set/mnist", one_hot=True)
 
+# 分别读取训练、验证和测试数据
+X_train, y_train = mnist.train.images, mnist.train.labels
+X_validation, y_validation = mnist.validation.images, mnist.validation.labels
+X_test, y_test = mnist.test.images, mnist.test.labels
+
 # mnist 数据集中的图片为 28x28
 x = tf.placeholder(tf.float32, [None, 784])
 # 标签值 [0...9]
@@ -32,21 +37,24 @@ correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 # 计算准确率
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+EPOCHS = 10
+BATCH_SIZE = 100
+
 with tf.Session() as sess:
     # 运行初始话
-    init_op.run()
-    # 训练 1000 次
-    for i in range(1, 1001):
-        # 每次取 100 个进行训练
-        batch_xs, batch_ys = mnist.train.next_batch(100)
+    sess.run(init_op)
+    # 训练 EPOCHS 轮，每轮都要在所有的训练数据上训练一遍
+    for i in range(EPOCHS):
+        # 每次读取 BATCH_SIZE 个数据进行训练
+        for offset in range(0, len(X_train), BATCH_SIZE):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset: end], y_train[offset: end]
+            sess.run(train_op, feed_dict={x: batch_x, y: batch_y})
 
-        # 每两百次输出一次准确率
-        if i % 200 == 0:
-            train_accuracy = sess.run(accuracy, feed_dict={x: mnist.validation.images, y: mnist.validation.labels})
-            print("step %d, training accuracy %g" % (i, train_accuracy))
-
-        sess.run(train_op, feed_dict={x: batch_xs, y: batch_ys})
+        validate_accuracy = sess.run(accuracy, feed_dict={x: X_validation, y: y_validation})
+        print("EPOCH {}, Validate Accuracy {}".format(i + 1, validate_accuracy))
 
     # 测试模型在测试集上的准确率
-    result = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
-    print(result)
+    result = sess.run(accuracy, feed_dict={x: X_test, y: y_test})
+    print()
+    print("Test Accuracy {}".format(result))
